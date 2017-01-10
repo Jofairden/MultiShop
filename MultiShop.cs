@@ -44,7 +44,7 @@ namespace MultiShop
 		public override void ModifyInterfaceLayers(List<MethodSequenceListItem> layers)
 		{
 			// Insert our new shop GUI layer so it updates in this layer
-			int mouseTextLayerIndex = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Mouse Item / NPC Head")); // do not use Mouse Text, to prevent npc icons going over the gui
+			int mouseTextLayerIndex = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Mouse Text"));
 			if (mouseTextLayerIndex != -1)
 			{
 				layers.Insert(mouseTextLayerIndex, new MethodSequenceListItem(
@@ -61,6 +61,12 @@ namespace MultiShop
 						},
 						null)
 				);
+			}
+			// Remove other quirky item icons while in GUI
+		    mouseTextLayerIndex = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Interact Item Icon"));
+			if (mouseTextLayerIndex != -1 && shopGUI.shopPanel != null && shopGUI.shopPanel.IsMouseHovering)
+			{
+				layers[mouseTextLayerIndex].Skip = true;
 			}
 		}
 
