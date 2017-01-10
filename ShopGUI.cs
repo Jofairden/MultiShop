@@ -105,6 +105,9 @@ namespace MultiShop
 		internal const float vpadding = 10f; // view padding
 		internal const float vwidth = 800f; // view width
 		internal const float vheight = 600f; // view height
+		internal static readonly Color shopUIPanelBGColor = new Color(63, 82, 151) * 0.45f;
+		internal static readonly Color sectionUIPanelBGColor = new Color(63, 82, 151) * 0.45f;
+		internal static readonly Color baseUIPanelBGColor = new Color(63, 82, 151) * 0.45f;
 
 		private bool dragging = false;
 		private Vector2 offset = Vector2.Zero;
@@ -112,6 +115,7 @@ namespace MultiShop
 		public override void OnInitialize()
 		{
 			shopPanel = new UIPanel();
+			shopPanel.BackgroundColor = baseUIPanelBGColor;
 			shopPanel.SetPadding(vpadding);
 			shopPanel.OverflowHidden = false;
 			shopPanel.Left.Set(Main.screenWidth/2f - vwidth/2f, 0f);
@@ -133,6 +137,7 @@ namespace MultiShop
 
 			UIPanel leftPanelBG = new UIPanel();
 			leftPanelBG.OverflowHidden = true;
+			leftPanelBG.BackgroundColor = sectionUIPanelBGColor;
 			leftPanelBG.SetPadding(0);
 			leftPanelBG.Width.Set(vwidth / 2f - 40f + vpadding, 0f);
 			leftPanelBG.Height.Set(vheight, 0f);
@@ -236,8 +241,8 @@ namespace MultiShop
 		// Panel dragging
 		private void _Recalculate(Vector2 mousePos, float precent = 0f)
 		{
-			shopPanel.Left.Set(mousePos.X - offset.X, precent);
-			shopPanel.Top.Set(mousePos.Y - offset.Y, precent);
+			shopPanel.Left.Set(Math.Max(0, Math.Min(mousePos.X - offset.X, Main.screenWidth - shopPanel.Width.Pixels)), precent);
+			shopPanel.Top.Set(Math.Max(0, Math.Min(mousePos.Y - offset.Y, Main.screenHeight - shopPanel.Height.Pixels)), precent);
 			Recalculate();
 		}
 
@@ -376,6 +381,7 @@ namespace MultiShop
 
 		public ShopUIPanel()
 		{
+			base.BackgroundColor = ShopGUI.shopUIPanelBGColor;
 			base.Width.Set(320, 0f);
 			base.Height.Set(ShopGUI.vheight/3f - ShopGUI.vpadding * 1.5f, 0f);
 		}
@@ -452,7 +458,7 @@ namespace MultiShop
 			// Special slot
 			specialPanel = new ItemUIPanel();
 			specialPanel.item.SetDefaults(ItemID.CrystalShard);
-			specialPanel.item.stack = Main.rand.Next(50);
+			specialPanel.item.stack = Main.rand.Next(5);
 			specialPanel.OnClick += (s, e) =>
 			{
 				var sortMode = SortingMode.CurrentShopSortMode == SortingMode.ShopSortingMode.ArtifactDesc ? SortingMode.ShopSortingMode.ArtifactAsc
