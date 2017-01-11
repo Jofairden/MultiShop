@@ -169,7 +169,7 @@ namespace MultiShop
 			leftSortButton.Initialize();
 			leftSortButton._panel.OnClick += (s, e) =>
 			{
-				SortingMode.ApplySort(ref leftPanel, (SortingMode.ShopSortingMode)(((int)SortingMode.CurrentShopSortMode + 1) % (SortingMode.ShopSortCount + 1)));
+				SortingMode.ApplySort(ref leftPanel, (SortingMode.ShopSortingMode)SortingMode.GetNewSort(typeof(SortingMode.ShopSortingMode)));
 			};
 			leftSortButton.OnDrawSelf += (s, e) =>
 			{
@@ -191,7 +191,7 @@ namespace MultiShop
 			rightSortButton.Initialize();
 			rightSortButton._panel.OnClick += (s, e) =>
 			{
-				SortingMode.ApplySort(ref rightPanel, (SortingMode.CollectibleSortingMode)(((int)SortingMode.CurrentCollectibleSortMode + 1) % (SortingMode.CollectibleSortCount + 1)));
+				SortingMode.ApplySort(ref rightPanel, (SortingMode.CollectibleSortingMode)SortingMode.GetNewSort(typeof(SortingMode.CollectibleSortingMode)));
 			};
 			rightSortButton.OnDrawSelf += (s, e) =>
 			{
@@ -435,6 +435,9 @@ namespace MultiShop
 		}
 	}
 
+	/// <summary>
+	/// A custom UIPanel which can hold a full shop window, containing materials, currency costs and the result, along with stack counts
+	/// </summary>
 	internal class ShopUIPanel : UIPanel
 	{
 		internal int totalGoldValue = 0;
@@ -563,6 +566,9 @@ namespace MultiShop
 		}
 	}
 
+	/// <summary>
+	/// A custom UIPanel which can hold and draw an item
+	/// </summary>
 	internal class ItemUIPanel : UIPanel
 	{
 		public Item item;
@@ -570,6 +576,7 @@ namespace MultiShop
 
 		public ItemUIPanel(int itemType = 0, int stack = 1)
 		{
+			///Ctor
 			base.OnMouseOver += (s, e) =>
 			{
 				(e as UIPanel).PanelUIHover();
@@ -585,6 +592,7 @@ namespace MultiShop
 
 		public override void OnInitialize()
 		{
+			/// This applies a new UIText which displays the stack count for the item
 			if (item.stack > 1)
 			{
 				string stackText = item.stack.ToString();
@@ -602,6 +610,7 @@ namespace MultiShop
 
 			if (item != null && item.type != 0)
 			{
+				///The following applies a proper mouse tooltip when hovering an item slot
 				if (base.IsMouseHovering)
 				{
 					Item mouseItem = new Item();
@@ -612,6 +621,7 @@ namespace MultiShop
 					Main.toolTip.name = Main.toolTip.name + (Main.toolTip.modItem != null ? $"[{Main.toolTip.modItem.mod.Name}]" : "");
 				}
 
+				/// The following draws the item texture properly in the center of the slot, with proper animation framing and scaling
 				CalculatedStyle innerDimensions = base.GetInnerDimensions();
 				Texture2D texture2D = Main.itemTexture[this.item.type];
 				Rectangle frame;
@@ -654,14 +664,29 @@ namespace MultiShop
 
 	internal static class SortingMode
 	{
+		/// <summary>
+		/// The current (active) collectible sorting mode
+		/// </summary>
 		public static CollectibleSortingMode CurrentCollectibleSortMode = CollectibleSortingMode.Normal;
+
+		/// <summary>
+		/// The total amount of collectible sorting modes
+		/// </summary>
 		public static int CollectibleSortCount => Enum.GetNames(typeof(CollectibleSortingMode)).Length;
 
+		/// <summary>
+		/// The current (active) shop sorting mode
+		/// </summary>
 		public static ShopSortingMode CurrentShopSortMode = ShopSortingMode.Normal;
 
+		/// <summary>
+		/// Total amount of shop sorting modes
+		/// </summary>
 		public static int ShopSortCount => Enum.GetNames(typeof(ShopSortingMode)).Length;
 
-
+		/// <summary>
+		/// Types of collectible sorting modes
+		/// </summary>
 		public enum CollectibleSortingMode
 		{
 			Normal = 1,
@@ -671,6 +696,9 @@ namespace MultiShop
 			UnitDesc,
 		}
 
+		/// <summary>
+		/// Types of shop sorting modes
+		/// </summary>
 		public enum ShopSortingMode
 		{
 			Normal = 1,
@@ -682,6 +710,46 @@ namespace MultiShop
 			ArtifactDesc,
 		}
 
+		/// <summary>
+		/// Gets the next sort mode based on the type of sort mode passed
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public static int GetNewSort(Type type)
+		{
+			if (type == typeof(CollectibleSortingMode))
+			{
+				if ((int)CurrentCollectibleSortMode + 1 > CollectibleSortCount)
+				{
+					CurrentCollectibleSortMode = CollectibleSortingMode.Normal;
+					return (int)CurrentCollectibleSortMode;
+				}
+				else
+				{
+					CurrentCollectibleSortMode = CurrentCollectibleSortMode + 1;
+					return (int)CurrentCollectibleSortMode;
+				}
+			}
+			else
+			{
+				if ((int)CurrentShopSortMode + 1 > ShopSortCount)
+				{
+					CurrentShopSortMode = ShopSortingMode.Normal;
+					return (int)CurrentShopSortMode;
+				}
+				else
+				{
+					CurrentShopSortMode = CurrentShopSortMode + 1;
+					return (int)CurrentShopSortMode;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns a name for the tooltip when hovering the sorting mode button on either side
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		public static string GetSortingModeTooltip(object type)
 		{
 			if (type.GetType() == typeof(CollectibleSortingMode))
@@ -725,6 +793,11 @@ namespace MultiShop
 			else return "null";
 		}
 
+		/// <summary>
+		/// Applies a sorting method for the collectibles list
+		/// </summary>
+		/// <param name="list"></param>
+		/// <param name="mode"></param>
 		public static void ApplySort(ref UIList list, CollectibleSortingMode mode)
 		{
 			switch (mode)
@@ -749,6 +822,11 @@ namespace MultiShop
 			CurrentCollectibleSortMode = mode;
 		}
 
+		/// <summary>
+		/// Applies a sorting method for the shop list
+		/// </summary>
+		/// <param name="list"></param>
+		/// <param name="mode"></param>
 		public static void ApplySort(ref UIList list, ShopSortingMode mode)
 		{
 			switch (mode)
@@ -782,6 +860,9 @@ namespace MultiShop
 		}
 	}
 
+	/// <summary>
+	/// Helps with hover effects
+	/// </summary>
 	internal static class EffectHelper
 	{
 		public static void PanelUIHover(this UIPanel panel, bool hover = true)
