@@ -83,7 +83,7 @@ namespace MultiShop
 			base.SetPadding(0);
 			base.Width.Set(ShopGUI.sortPanelWidth, 0f);
 			base.Height.Set(ShopGUI.sortPanelHeight, 0f);
-			base.Top.Set(ShopGUI.vheight / 10f - 22f, 0f);
+			//base.Top.Set(ShopGUI.vheight / 10f - 22f, 0f);
 		}
 
 		public void AddButton(UISortButton button)
@@ -110,6 +110,9 @@ namespace MultiShop
 		public UISortPanel rightSortPanel;
 		public UISortButton leftSortButton;
 		public UISortButton rightSortButton;
+
+		public UIText leftTitle;
+		public UIText rightTitle;
 
 		private UIElement _UIView;
 		public UIPanel shopPanel;
@@ -139,10 +142,11 @@ namespace MultiShop
 		{
 			_UIView = new UIElement();
 			_UIView.SetPadding(0f);
-			_UIView.Width.Set(vwidth + sortPanelWidth * 2f + 3f * vpadding, 0f);
-			_UIView.Height.Set(vheight, 0f);
+			_UIView.Width.Set(vwidth - 3f * vpadding, 0f);
+			_UIView.Height.Set(vheight + 75f, 0f);
 			_UIView.Left.Set(Main.screenWidth / 2f - _UIView.Width.Pixels / 2f, 0f);
 			_UIView.Top.Set(Main.screenHeight / 2f - _UIView.Height.Pixels / 2f, 0f);
+			//uncomment this to see the UIView
 			//var testPanel = new UIPanel();
 			//testPanel.CopyStyle(_UIView);
 			//testPanel.Left.Set(0f, 0f);
@@ -154,16 +158,26 @@ namespace MultiShop
 			shopPanel = new UIPanel();
 			shopPanel.BackgroundColor = baseUIPanelBGColor;
 			shopPanel.SetPadding(vpadding);
-			shopPanel.Width.Set(vwidth - 3f * vpadding, 0f);
-			shopPanel.Height.Set(vheight, 0f);
-			shopPanel.Left.Set(3f * vpadding + sortPanelWidth, 0f);
+			shopPanel.Width.Set(_UIView.Width.Pixels, 0f);
+			shopPanel.Height.Set(_UIView.Height.Pixels, 0f);
+			//shopPanel.Left.Set(3f * vpadding + sortPanelWidth, 0f);
+			//shopPanel.Top.Set((_UIView.Height.Pixels - vheight) / 4f, 0f);
 			shopPanel.OnMouseDown += ShopPanel_OnMouseDown;
 			shopPanel.OnMouseUp += ShopPanel_OnMouseUp;
 			_UIView.Append(shopPanel);
 
+			leftTitle = new UIText("SHOP/CRAFT", 0.95f, true);
+			leftTitle.Top.Set(vpadding, 0f);
+			shopPanel.Append(leftTitle);
+
+			rightTitle = new UIText("COLLECTED", 0.95f, true);
+			rightTitle.Top.Set(vpadding, 0f);
+			rightTitle.Left.Set(vwidth / 2f - 58f + vpadding * 4f, 0f);
+			shopPanel.Append(rightTitle);
+
 			leftSortPanel = new UISortPanel();
-			leftSortPanel.Left.Set(shopPanel.Left.Pixels - sortPanelWidth, 0f);
-			_UIView.Append(leftSortPanel);
+			leftSortPanel.Left.Set(vwidth/2f - 50f - vpadding * 3f, 0f);
+			shopPanel.Append(leftSortPanel);
 
 			leftSortButton = new UISortButton();
 			leftSortButton.Initialize();
@@ -184,8 +198,8 @@ namespace MultiShop
 			leftSortPanel.AppendButtons();
 
 			rightSortPanel = new UISortPanel();
-			rightSortPanel.Left.Set(shopPanel.Width.Pixels + sortPanelWidth * 1.5f, 0f);
-			_UIView.Append(rightSortPanel);
+			rightSortPanel.Left.Set(vwidth - 50f - vpadding * 5f, 0f);
+			shopPanel.Append(rightSortPanel);
 
 			rightSortButton = new UISortButton();
 			rightSortButton.Initialize();
@@ -211,17 +225,18 @@ namespace MultiShop
 			leftPanelBG.SetPadding(0);
 			leftPanelBG.Width.Set(vwidth / 2f - 40f + vpadding, 0f);
 			leftPanelBG.Height.Set(vheight, 0f);
+			leftPanelBG.Top.Set(55f, 0f);
 			shopPanel.Append(leftPanelBG);
 
 			leftPanel = new UIList();
 			leftPanel.OverflowHidden = true;
 			leftPanel.SetPadding(vpadding);
 			leftPanel.Width.Set(vwidth/2f, 0f);
-			leftPanel.Height.Set(vheight, 0f);
+			leftPanel.Height.Set(vheight + (_UIView.Height.Pixels - vheight) / 2f, 0f);
 			leftPanelBG.Append(leftPanel); // append leftPanel to shopPanel
 
 			leftScrollbar = new UIScrollbar();
-			leftScrollbar.Height.Set(vheight - 6f * vpadding, 0f);
+			leftScrollbar.Height.Set(vheight - 4f * vpadding, 0f);
 			leftScrollbar.Width.Set(22f, 0f);
 			leftScrollbar.Left.Set(vwidth/2f - 80f + vpadding, 0f);
 			leftScrollbar.Top.Set(vpadding, 0f);
@@ -249,8 +264,8 @@ namespace MultiShop
 			TEMPCollectibles = new List<Tuple<int, int>>();
 			var tmpC = new Tuple<int, int>[]
 			{
-				new Tuple<int, int>(ItemID.Bone, 500),
-				new Tuple<int, int>(ItemID.DemoniteOre, 450),
+				new Tuple<int, int>(ItemID.Bone, 1000),
+				new Tuple<int, int>(ItemID.DemoniteOre, 1500),
 			};
 
 			for (int i = 0; i < tmpC.Length; i++)
@@ -353,6 +368,9 @@ namespace MultiShop
 		public UIPanel unitPanel;
 		public UIText unitUIText;
 
+		/// <summary>
+		/// Ctor
+		/// </summary>
 		public CollectibleUIPanel()
 		{
 			base.Width.Set(ShopGUI.vwidth/2f - 80f, 0f);
@@ -362,6 +380,7 @@ namespace MultiShop
 
 		public override void OnInitialize()
 		{
+			/// Item panel
 			itemPanel = new ItemUIPanel();
 			itemPanel.OnClick += (s, e) =>
 			{
@@ -375,12 +394,14 @@ namespace MultiShop
 			itemPanel.Height.Set(ShopUIPanel.panelheight, 0f);
 			base.Append(itemPanel);
 
+			/// Header text (Item name)
 			headerText = "??";
 			headerUIText = new UIText(headerText);
 			headerUIText.Top.Set(Main.fontItemStack.MeasureString(headerUIText.Text).X / 2 + ShopGUI.vpadding / 4f, 0f);
 			headerUIText.Left.Set(itemPanel.Width.Pixels + ShopGUI.vpadding, 0f);
 			base.Append(headerUIText);
 
+			/// Unit panel
 			unitPanel = new UIPanel();
 			unitPanel.OnClick += (s, e) =>
 			{
@@ -399,35 +420,63 @@ namespace MultiShop
 				(e as UIPanel).PanelUIHover(false);
 			};
 			unitPanel.Height.Set(itemPanel.Height.Pixels, 0f);
-			unitPanel.Width.Set(base.Width.Pixels/4f + ShopGUI.vpadding, 0f);
+			unitPanel.Width.Set(base.Width.Pixels/4f + ShopGUI.vpadding * 2f, 0f);
 			unitPanel.Left.Set(base.Width.Pixels - unitPanel.Width.Pixels - ShopGUI.vpadding, 0f);
 			base.Append(unitPanel);
 
-			string text = itemPanel.item.stack + " units";
-			unitUIText = new UIText(text);
-			unitUIText.Left.Set(unitPanel.Width.Pixels - ShopGUI.vpadding * 3f - Main.fontItemStack.MeasureString(text).X, 0f);
+			/// Unit UI Text
+			unitUIText = new UIText("");
+			SetUnits(_stack);
 			unitPanel.Append(unitUIText);
 		}
 
+		protected override void DrawSelf(SpriteBatch spriteBatch)
+		{
+			base.DrawSelf(spriteBatch);
+			if (unitPanel != null && unitPanel.IsMouseHovering && _stack > 999)
+			{
+				Main.hoverItemName = $"{_stack} units";
+			}
+		}
+
+		/// <summary>
+		/// Attempt to set the item in this panel
+		/// </summary>
+		/// <param name="itemType"></param>
+		/// <param name="stack"></param>
 		internal void SetItem(int itemType, int stack = 0)
 		{
 			if (itemPanel != null)
 			{
 				itemPanel.item.SetDefaults(itemType);
 				headerText = itemPanel.item.name;
-				itemPanel.item.stack = 0;
+				itemPanel.item.stack = 0; // Reset stack, so it isn't drawn by the ItemUIPanel
 				SetItemName(itemPanel.item.name);
-				this._stack = stack;
-				unitUIText.SetText(stack + " units");
-				unitUIText.Left.Set(unitPanel.Width.Pixels - ShopGUI.vpadding * 3f - Main.fontItemStack.MeasureString(unitUIText.Text).X, 0f);
+				SetUnits(stack);
 			}
 		}
 
+		internal void SetUnits(int stack)
+		{
+			this._stack = stack;
+			string unitText = stack > 999 ? "999+ units" : $"{stack} units"; // caps display at 999 units
+			unitUIText.SetText(unitText);
+			var measured = Main.fontItemStack.MeasureString(unitUIText.Text);
+			if (_stack < 100)
+				unitUIText.Left.Set(measured.X / 4f - ShopGUI.vpadding, 0f);
+			else
+				unitUIText.Left.Set(-ShopGUI.vpadding/2f, 0f);
+		}
+
+		/// <summary>
+		/// Sets the item header name to something new, and makes sure it fits
+		/// </summary>
+		/// <param name="text"></param>
 		internal void SetItemName(string text)
 		{
 			headerUIText.SetText(text);
 			string newText = text;
-			while (Main.fontItemStack.MeasureString(newText).X > 130)
+			while (Main.fontItemStack.MeasureString(newText).X > 120)
 			{
 				newText = newText.Substring(0, newText.Length - 1);
 				headerUIText.SetText(newText + "...");
