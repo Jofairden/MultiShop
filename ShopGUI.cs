@@ -29,7 +29,8 @@ namespace MultiShop
 	{
 		public event OnDrawSelfHandler OnDrawSelf;
 		public delegate void OnDrawSelfHandler(UISortButton sender, OnDrawSelfArgs args);
-		public UIPanel _panel;
+		public UIPanel _button;
+		public ItemUIPanel _inner;
 		public float offsetY = 0f;
 
 		public UISortButton()
@@ -40,25 +41,28 @@ namespace MultiShop
 
 		public override void OnInitialize()
 		{
-			_panel = new UIPanel();
+			_button = new UIPanel();
 			//_panel.OnClick += ShopSortButton_OnClick;
 			//_panel.BackgroundColor = Color.Yellow;
-			_panel.Width.Set(ShopGUI.sortPanelWidth - 10f, 0f);
-			_panel.Height.Set(ShopGUI.sortPanelHeight - 10f, 0f);
-			_panel.Left.Set(5f, 0f);
-			_panel.Top.Set(5f + offsetY, 0f);
-			base.Append(_panel);
+			_button.SetPadding(0f);
+			_button.Width.Set(ShopGUI.sortPanelWidth - 10f, 0f);
+			_button.Height.Set(ShopGUI.sortPanelHeight - 10f, 0f);
+			_button.Left.Set(5f, 0f);
+			_button.Top.Set(5f + offsetY, 0f);
+			base.Append(_button);
+
+			_inner = new ItemUIPanel(0, 0);
 		}
 
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
-			base.DrawSelf(spriteBatch);
+			//base.DrawSelf(spriteBatch);
 			OnDrawSelf?.Invoke(this as UISortButton, new OnDrawSelfArgs(spriteBatch));
 		}
 
 		internal void ResetTop()
 		{
-			_panel?.Top.Set(5f + offsetY, 0f);
+			_button?.Top.Set(5f + offsetY, 0f);
 		}
 
 		//private void ShopSortButton_OnClick(UIMouseEvent evt, UIElement listeningElement)
@@ -181,13 +185,13 @@ namespace MultiShop
 
 			leftSortButton = new UISortButton();
 			leftSortButton.Initialize();
-			leftSortButton._panel.OnClick += (s, e) =>
+			leftSortButton._button.OnClick += (s, e) =>
 			{
 				SortingMode.ApplySort(ref leftPanel, (SortingMode.ShopSortingMode)SortingMode.GetNewSort(typeof(SortingMode.ShopSortingMode)));
 			};
 			leftSortButton.OnDrawSelf += (s, e) =>
 			{
-				if (s.IsMouseHovering || s._panel.IsMouseHovering)
+				if (s.IsMouseHovering || s._button.IsMouseHovering)
 				{
 					Main.hoverItemName = $"Current sorting mode: {SortingMode.GetSortingModeTooltip(SortingMode.CurrentShopSortMode)}\n" +
 					$"Traverse through sorting modes by pressing this button\n" +
@@ -203,13 +207,13 @@ namespace MultiShop
 
 			rightSortButton = new UISortButton();
 			rightSortButton.Initialize();
-			rightSortButton._panel.OnClick += (s, e) =>
+			rightSortButton._button.OnClick += (s, e) =>
 			{
 				SortingMode.ApplySort(ref rightPanel, (SortingMode.CollectibleSortingMode)SortingMode.GetNewSort(typeof(SortingMode.CollectibleSortingMode)));
 			};
 			rightSortButton.OnDrawSelf += (s, e) =>
 			{
-				if (s.IsMouseHovering || s._panel.IsMouseHovering)
+				if (s.IsMouseHovering || s._button.IsMouseHovering)
 				{
 					Main.hoverItemName = $"Current sorting mode: {SortingMode.GetSortingModeTooltip(SortingMode.CurrentCollectibleSortMode)}\n" +
 					$"Traverse through sorting modes by pressing this button\n" +
@@ -711,6 +715,9 @@ namespace MultiShop
 		}
 	}
 
+	/// <summary>
+	/// Does all the sorting for lists
+	/// </summary>
 	internal static class SortingMode
 	{
 		/// <summary>
