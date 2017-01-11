@@ -15,82 +15,103 @@ namespace MultiShop
 {
 	//todo: remove duplicate entries for material panels when possible
 
-	//internal class ShopSortButton : UIElement
-	//{
-	//	public UIPanel _panel;
-	//	public float offsetY = 0f;
+	internal class OnDrawSelfArgs : EventArgs
+	{
+		public SpriteBatch spriteBatch { get; private set; }
 
-	//	public ShopSortButton()
-	//	{
-	//		base.Width.Set(40, 0f);
-	//		base.Height.Set(40, 0f);
-	//	}
+		public OnDrawSelfArgs(SpriteBatch sB)
+		{
+			spriteBatch = sB;
+		}
+	}
 
-	//	public override void OnInitialize()
-	//	{
-	//		_panel = new UIPanel();
-	//		_panel.OnClick += ShopSortButton_OnClick;
-	//		_panel.BackgroundColor = Color.Yellow;
-	//		_panel.Width.Set(40f, 0f);
-	//		_panel.Height.Set(40f, 0f);
-	//		_panel.Left.Set(5f, 0f);
-	//		_panel.Top.Set(5f + offsetY, 0f);
-	//		base.Append(_panel);
-	//	}
+	internal class UISortButton : UIElement
+	{
+		public event OnDrawSelfHandler OnDrawSelf;
+		public delegate void OnDrawSelfHandler(UISortButton sender, OnDrawSelfArgs args);
+		public UIPanel _panel;
+		public float offsetY = 0f;
 
-	//	internal void ResetTop()
-	//	{
-	//		_panel?.Top.Set(5f + offsetY, 0f);
-	//	}
+		public UISortButton()
+		{
+			base.Width.Set(ShopGUI.sortPanelWidth - 10f, 0f);
+			base.Height.Set(ShopGUI.sortPanelHeight - 10f, 0f);
+		}
 
-	//	private void ShopSortButton_OnClick(UIMouseEvent evt, UIElement listeningElement)
-	//	{
-	//		Main.NewText("Clicked on button!");
-	//		MultiShop.instance.shopGUI.rightPanel._items.Sort((x, y) => (x as CollectibleUIPanel).itemPanel.item.name.CompareTo((y as CollectibleUIPanel).itemPanel.item.name));
-	//		MultiShop.instance.shopGUI.rightPanel.RecalculateChildren();
-	//	}
-	//}
+		public override void OnInitialize()
+		{
+			_panel = new UIPanel();
+			//_panel.OnClick += ShopSortButton_OnClick;
+			//_panel.BackgroundColor = Color.Yellow;
+			_panel.Width.Set(ShopGUI.sortPanelWidth - 10f, 0f);
+			_panel.Height.Set(ShopGUI.sortPanelHeight - 10f, 0f);
+			_panel.Left.Set(5f, 0f);
+			_panel.Top.Set(5f + offsetY, 0f);
+			base.Append(_panel);
+		}
 
-	//internal class ShopSortPanel : UIPanel
-	//{
-	//	internal List<ShopSortButton> _buttons;
+		protected override void DrawSelf(SpriteBatch spriteBatch)
+		{
+			base.DrawSelf(spriteBatch);
+			OnDrawSelf?.Invoke(this as UISortButton, new OnDrawSelfArgs(spriteBatch));
+		}
 
-	//	public ShopSortPanel()
-	//	{
-	//		_buttons = new List<ShopSortButton>();
-	//	}
+		internal void ResetTop()
+		{
+			_panel?.Top.Set(5f + offsetY, 0f);
+		}
 
-	//	public override void OnInitialize()
-	//	{
-	//		base.SetPadding(0);
-	//		base.Width.Set(50f, 0f);
-	//		base.Height.Set(ShopGUI.vheight / 2f - ShopGUI.vpadding, 0f);
-	//		base.Top.Set(ShopGUI.vheight / 10f - 22f, 0f);
-	//	}
+		//private void ShopSortButton_OnClick(UIMouseEvent evt, UIElement listeningElement)
+		//{
+		//	Main.NewText("Clicked on button!");
+		//	MultiShop.instance.shopGUI.rightPanel._items.Sort((x, y) => (x as CollectibleUIPanel).itemPanel.item.name.CompareTo((y as CollectibleUIPanel).itemPanel.item.name));
+		//	MultiShop.instance.shopGUI.rightPanel.RecalculateChildren();
+		//}
+	}
 
-	//	public void AddButton(ShopSortButton button)
-	//	{
-	//		button.Initialize();
-	//		button.offsetY = _buttons.Count * button.Width.Pixels + 2.5f * _buttons.Count;
-	//		button.ResetTop();
-	//		_buttons.Add(button);
-	//	}
+	internal class UISortPanel : UIPanel
+	{
+		internal List<UISortButton> _buttons;
 
-	//	internal void AppendButtons()
-	//	{
-	//		foreach (var button in _buttons)
-	//		{
-	//			if (button != null)
-	//				base.Append(button);
-	//		}
-	//	}
-	//}
+		public UISortPanel()
+		{
+			_buttons = new List<UISortButton>();
+		}
+
+		public override void OnInitialize()
+		{
+			base.SetPadding(0);
+			base.Width.Set(ShopGUI.sortPanelWidth, 0f);
+			base.Height.Set(ShopGUI.sortPanelHeight, 0f);
+			base.Top.Set(ShopGUI.vheight / 10f - 22f, 0f);
+		}
+
+		public void AddButton(UISortButton button)
+		{
+			button.Initialize();
+			button.offsetY = _buttons.Count * button.Width.Pixels + 2.5f * _buttons.Count;
+			button.ResetTop();
+			_buttons.Add(button);
+		}
+
+		internal void AppendButtons()
+		{
+			foreach (var button in _buttons)
+			{
+				if (button != null)
+					base.Append(button);
+			}
+		}
+	}
 
 	internal class ShopGUI : UIState
 	{
-		//public ShopSortPanel leftSortPanel;
-		//public ShopSortPanel rightSortPanel;
+		public UISortPanel leftSortPanel;
+		public UISortPanel rightSortPanel;
+		public UISortButton leftSortButton;
+		public UISortButton rightSortButton;
 
+		private UIElement _UIView;
 		public UIPanel shopPanel;
 		public UIList leftPanel;
 		public UIList rightPanel;
@@ -102,6 +123,8 @@ namespace MultiShop
 
 		internal List<Tuple<int, int>> TEMPCollectibles;
 
+		internal const float sortPanelWidth = 50f;
+		internal const float sortPanelHeight = 50f;
 		internal const float vpadding = 10f; // view padding
 		internal const float vwidth = 800f; // view width
 		internal const float vheight = 600f; // view height
@@ -114,26 +137,73 @@ namespace MultiShop
 
 		public override void OnInitialize()
 		{
+			_UIView = new UIElement();
+			_UIView.SetPadding(0f);
+			_UIView.Width.Set(vwidth + sortPanelWidth * 2f + 3f * vpadding, 0f);
+			_UIView.Height.Set(vheight, 0f);
+			_UIView.Left.Set(Main.screenWidth / 2f - _UIView.Width.Pixels / 2f, 0f);
+			_UIView.Top.Set(Main.screenHeight / 2f - _UIView.Height.Pixels / 2f, 0f);
+			//var testPanel = new UIPanel();
+			//testPanel.CopyStyle(_UIView);
+			//testPanel.Left.Set(0f, 0f);
+			//testPanel.Top.Set(0f, 0f);
+			//testPanel.BackgroundColor = Color.Yellow;
+			//_UIView.Append(testPanel);
+			base.Append(_UIView);
+
 			shopPanel = new UIPanel();
 			shopPanel.BackgroundColor = baseUIPanelBGColor;
 			shopPanel.SetPadding(vpadding);
-			shopPanel.OverflowHidden = false;
-			shopPanel.Left.Set(Main.screenWidth/2f - vwidth/2f, 0f);
-			shopPanel.Top.Set(Main.screenHeight/2f - vheight/2f, 0f);
 			shopPanel.Width.Set(vwidth - 3f * vpadding, 0f);
 			shopPanel.Height.Set(vheight, 0f);
+			shopPanel.Left.Set(3f * vpadding + sortPanelWidth, 0f);
 			shopPanel.OnMouseDown += ShopPanel_OnMouseDown;
 			shopPanel.OnMouseUp += ShopPanel_OnMouseUp;
-			base.Append(shopPanel); // append shopPanel to base UIState
+			_UIView.Append(shopPanel);
 
-			//leftSortPanel = new ShopSortPanel();
-			//leftSortPanel.Left.Set(-44f - vpadding * 2f, 0f);
-			//shopPanel.Append(leftSortPanel);
+			leftSortPanel = new UISortPanel();
+			leftSortPanel.Left.Set(shopPanel.Left.Pixels - sortPanelWidth, 0f);
+			_UIView.Append(leftSortPanel);
 
-			//rightSortPanel = new ShopSortPanel();
-			//rightSortPanel.Left.Set(vwidth - 3 * vpadding, 0f);
+			leftSortButton = new UISortButton();
+			leftSortButton.Initialize();
+			leftSortButton._panel.OnClick += (s, e) =>
+			{
+				SortingMode.ApplySort(ref leftPanel, (SortingMode.ShopSortingMode)(((int)SortingMode.CurrentShopSortMode + 1) % (SortingMode.ShopSortCount + 1)));
+			};
+			leftSortButton.OnDrawSelf += (s, e) =>
+			{
+				if (s.IsMouseHovering || s._panel.IsMouseHovering)
+				{
+					Main.hoverItemName = $"Current sorting mode: {SortingMode.GetSortingModeTooltip(SortingMode.CurrentShopSortMode)}\n" +
+					$"Traverse through sorting modes by pressing this button\n" +
+					$"You can also apply sorting modes by pressing elements in the UI!";
+				}
+			};
+			leftSortPanel.AddButton(leftSortButton);
+			leftSortPanel.AppendButtons();
 
-			//shopPanel.Append(rightSortPanel);
+			rightSortPanel = new UISortPanel();
+			rightSortPanel.Left.Set(shopPanel.Width.Pixels + sortPanelWidth * 1.5f, 0f);
+			_UIView.Append(rightSortPanel);
+
+			rightSortButton = new UISortButton();
+			rightSortButton.Initialize();
+			rightSortButton._panel.OnClick += (s, e) =>
+			{
+				SortingMode.ApplySort(ref rightPanel, (SortingMode.CollectibleSortingMode)(((int)SortingMode.CurrentCollectibleSortMode + 1) % (SortingMode.CollectibleSortCount + 1)));
+			};
+			rightSortButton.OnDrawSelf += (s, e) =>
+			{
+				if (s.IsMouseHovering || s._panel.IsMouseHovering)
+				{
+					Main.hoverItemName = $"Current sorting mode: {SortingMode.GetSortingModeTooltip(SortingMode.CurrentCollectibleSortMode)}\n" +
+					$"Traverse through sorting modes by pressing this button\n" +
+					$"You can also apply sorting modes by pressing elements in the UI!";
+				}
+			};
+			rightSortPanel.AddButton(rightSortButton);
+			rightSortPanel.AppendButtons();
 
 			UIPanel leftPanelBG = new UIPanel();
 			leftPanelBG.OverflowHidden = true;
@@ -241,8 +311,8 @@ namespace MultiShop
 		// Panel dragging
 		private void _Recalculate(Vector2 mousePos, float precent = 0f)
 		{
-			shopPanel.Left.Set(Math.Max(0, Math.Min(mousePos.X - offset.X, Main.screenWidth - shopPanel.Width.Pixels)), precent);
-			shopPanel.Top.Set(Math.Max(0, Math.Min(mousePos.Y - offset.Y, Main.screenHeight - shopPanel.Height.Pixels)), precent);
+			_UIView.Left.Set(Math.Max(0, Math.Min(mousePos.X - offset.X, Main.screenWidth - shopPanel.Width.Pixels)), precent);
+			_UIView.Top.Set(Math.Max(0, Math.Min(mousePos.Y - offset.Y, Main.screenHeight - shopPanel.Height.Pixels)), precent);
 			Recalculate();
 		}
 
@@ -254,7 +324,7 @@ namespace MultiShop
 
 		private void ShopPanel_OnMouseDown(UIMouseEvent evt, UIElement listeningElement)
 		{
-			offset = new Vector2(evt.MousePosition.X - shopPanel.Left.Pixels, evt.MousePosition.Y - shopPanel.Top.Pixels);
+			offset = new Vector2(evt.MousePosition.X - _UIView.Left.Pixels, evt.MousePosition.Y - _UIView.Top.Pixels);
 			dragging = true;
 		}
 
@@ -610,6 +680,49 @@ namespace MultiShop
 			GoldDesc,
 			ArtifactAsc,
 			ArtifactDesc,
+		}
+
+		public static string GetSortingModeTooltip(object type)
+		{
+			if (type.GetType() == typeof(CollectibleSortingMode))
+			{
+				switch ((CollectibleSortingMode)type)
+				{
+					default:
+					case CollectibleSortingMode.Normal:
+						return "Normal";
+					case CollectibleSortingMode.NamesAsc:
+						return "Name (Ascending)";
+					case CollectibleSortingMode.NamesDesc:
+						return "Name (Descending)";
+					case CollectibleSortingMode.UnitAsc:
+						return "Units (Ascending)";
+					case CollectibleSortingMode.UnitDesc:
+						return "Units (Descending)";
+				}
+			}
+			else if (type.GetType() == typeof(ShopSortingMode))
+			{
+				switch ((ShopSortingMode)type)
+				{
+					default:
+					case ShopSortingMode.Normal:
+						return "Normal";
+					case ShopSortingMode.ResultNameAsc:
+						return "Name (Ascending)";
+					case ShopSortingMode.ResultNameDesc:
+						return "Name (Descending)";
+					case ShopSortingMode.GoldAsc:
+						return "Gold cost (Ascending)";
+					case ShopSortingMode.GoldDesc:
+						return "Gold cost (Descending)";
+					case ShopSortingMode.ArtifactAsc:
+						return "Artifact power (Ascending)";
+					case ShopSortingMode.ArtifactDesc:
+						return "Artifact power (Descending)";
+				}
+			}
+			else return "null";
 		}
 
 		public static void ApplySort(ref UIList list, CollectibleSortingMode mode)
