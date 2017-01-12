@@ -666,9 +666,6 @@ namespace MultiShop
 				///The following applies a proper mouse tooltip when hovering an item slot
 				if (base.IsMouseHovering)
 				{
-					Item mouseItem = new Item();
-					mouseItem.SetDefaults(0);
-					Main.mouseItem = mouseItem;
 					Main.hoverItemName = item.name;
 					Main.toolTip = item.Clone();
 					Main.toolTip.name = Main.toolTip.name + (Main.toolTip.modItem != null ? $"[{Main.toolTip.modItem.mod.Name}]" : "");
